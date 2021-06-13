@@ -1,0 +1,16 @@
+.stock-list {
+    margin: 32px 0px;
+    /* background-color: red; */
+}
+
+.stock {
+    background-color: orange;
+    margin: 8px 0px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.stock-list-button {
+    padding: 2px 8px;
+}
