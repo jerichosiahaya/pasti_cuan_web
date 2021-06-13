@@ -1,20 +1,49 @@
 <?php
-    session_start();
-    require './functions.php';
+session_start();
+require './functions.php';
+error_reporting(0);
+// if(!isset($_SESSION["login"])) {
+//     header("Location: login.php");
+//     exit;
+// }
+// $result = mysqli_query($conn, "SELECT * FROM stocks");
+$stocks = query("SELECT * FROM stocks");
+// var_dump(json_encode($stocks));
+$result = getStock($row["StockName"]);
+// var_dump($result);
 
-    if(!isset($_SESSION["login"])) {
-        header("Location: login.php");
-        exit;
+function getStock($stock_symbol)
+{
+    $curl = curl_init();
+
+    curl_setopt_array($curl, [
+        CURLOPT_URL => "https://alpha-vantage.p.rapidapi.com/query?function=GLOBAL_QUOTE&symbol=$stock_symbol",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => [
+            "x-rapidapi-host: alpha-vantage.p.rapidapi.com",
+            "x-rapidapi-key: 94fb659101msh17375f4d36cde7dp18170fjsn846b85a6e3b7"
+        ],
+    ]);
+
+    $response = json_decode(curl_exec($curl), true);
+    // $response = curl_exec($curl);
+    $err = curl_error($curl);
+
+    curl_close($curl);
+
+    if ($err) {
+        echo "cURL Error #:" . $err;
+    } else {
+        echo $response['Global Quote']['05. price'];
     }
+}
 
-    // $result = mysqli_query($conn, "SELECT * FROM stocks");
-
-    $stocks = query("SELECT * FROM stocks");
-    // var_dump(json_encode($stocks));
-
-    $result = getStock($row["StockName"]);
-
-    // var_dump($result);
 ?>
 
 <!DOCTYPE html>
@@ -26,11 +55,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href='./assets/icon.png' type="image/gif" sizes="16x16">
     <title>Home</title>
-
     <link rel="stylesheet" href="./css/universal.css">
     <link rel="stylesheet" href="./css/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 
@@ -53,36 +80,28 @@
             <button type="submit"><i class="fa fa-search"></i></button>
         </div>
     </div>
+    <?php
+    // getStock('TSLA');
+    // getStock('GOOGL');
+    ?>
     <div id="content">
         <div class="container">
-            
             <div class="stock-list">
-                
-                <?php foreach($stocks as $row) : ?>
-                    
-                    
+                <?php foreach ($stocks as $row) : ?>
                     <div class="stock">
                         <div class="stock-name-container">
                             <p class="stock-name"><?= $row["StockName"] ?></p>
                         </div>
                         <div class="stock-price-container">
-                            <p class="stock-price"></p>
+                            <p class="stock-price"><?php getStock($row["StockName"]); ?></p>
                         </div>
                         <button id="buy-button" class="stock-list-button">BUY</button>
                         <button id="sell-button" class="stock-list-button">SELL</button>
-                    </div>                
-
-
-                    
-                    
+                    </div>
                 <?php endforeach; ?>
-
             </div>
-
-
         </div>
     </div>
-
     <div id="footer">
         <div class="container">
             <section class="mid-footer">
@@ -138,7 +157,7 @@
         </div>
     </div>
 
-    
+
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- <script src="//firebase/8.6.5/firebase-app.js"></script> -->
 
